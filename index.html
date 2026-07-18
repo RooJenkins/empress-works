@@ -15,13 +15,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Instrument+Sans:ital,wght@0,400..700;1,400..600&display=swap" rel="stylesheet">
 <style>
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
 body{margin:0;background:#F5F3ED;color:#1B1A17;font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:#1C4B3C}
 a:hover{color:#8C6A3F}
 ::selection{background:#1C4B3C;color:#F5F3ED}
 img{max-width:100%}
-@media (max-width:860px){[data-mq="navlinks"]{display:none}}
+@media (max-width:860px){[data-mq="navlinks"]{display:none!important}}
+@media (max-width:600px){nav{padding-left:16px!important;padding-right:16px!important;gap:10px!important}.wordmark{font-size:15px!important;letter-spacing:0.11em!important}.nav-badge{display:none!important}}
 @media (max-width:1120px){[data-mq="stats"]{grid-template-columns:repeat(3,1fr)!important}}
 @media (max-width:600px){[data-mq="stats"]{grid-template-columns:repeat(2,1fr)!important}}
 /* style-hover pseudo-classes (importantify'd to match the DC runtime) */
@@ -35,8 +36,8 @@ img{max-width:100%}
 
 <nav style="position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:13px clamp(20px,4vw,44px);background:rgba(245,243,237,0.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,26,23,0.12)">
   <a href="#top" style="display:flex;align-items:baseline;gap:10px;text-decoration:none;color:#1B1A17">
-    <span style="font-family:'Newsreader',serif;font-size:17px;font-weight:500;letter-spacing:0.16em">EMPRESS WORKS</span>
-    <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8C6A3F;border:1px solid rgba(140,106,63,0.45);padding:2px 7px;border-radius:999px">№ 201</span>
+    <span class="wordmark" style="font-family:'Newsreader',serif;font-size:17px;font-weight:500;letter-spacing:0.16em">EMPRESS WORKS</span>
+    <span class="nav-badge" style="font-size:11px;font-weight:600;letter-spacing:0.1em;color:#8C6A3F;border:1px solid rgba(140,106,63,0.45);padding:2px 7px;border-radius:999px">№ 201</span>
   </a>
   <div style="display:flex;align-items:center;gap:clamp(14px,2.4vw,30px)">
     <div data-mq="navlinks" style="display:flex;align-items:center;gap:clamp(14px,2.4vw,30px)">
