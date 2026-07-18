@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&family=Instrument+Sans:ital,wght@0,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<style>
+html,body{margin:0;height:100%;font-family:'Instrument Sans',system-ui,sans-serif;background:#F5F3ED;color:#1B1A17}
+#map{position:absolute;inset:0}
+.leaflet-tile-pane{filter:grayscale(1) sepia(0.22) brightness(1.06) contrast(0.88)}
+.leaflet-container{background:#EDEAE2;font:inherit}
+.panel{position:absolute;z-index:800;top:14px;left:14px;bottom:14px;width:272px;overflow-y:auto;background:rgba(252,251,248,0.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(27,26,23,0.14);border-radius:8px;padding:18px 16px 12px;box-shadow:0 8px 28px rgba(20,26,22,0.10)}
+.panel h1{font-family:'Newsreader',serif;font-weight:400;font-size:21px;margin:0 0 2px;letter-spacing:0.01em}
+.panel .sub{font-size:11.5px;color:#6F6A5F;margin:0 0 14px}
+.grp{margin:0 0 14px}
+.grp h2{font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;margin:0 0 6px;display:flex;align-items:center;gap:7px}
+.grp h2 i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.grp ul{list-style:none;margin:0;padding:0}
+.grp li{display:flex;align-items:baseline;gap:9px;padding:6px 6px;border-radius:5px;cursor:pointer;transition:background .15s}
+.grp li:hover{background:rgba(28,75,60,0.08)}
+.num{flex:none;width:19px;height:19px;border-radius:50%;color:#F7F5EF;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;transform:translateY(3px)}
+.nm{flex:1;min-width:0}
+.nm b{display:block;font-size:13px;font-weight:600;line-height:1.25}
+.nm span{display:block;font-size:11px;color:#6F6A5F;line-height:1.35}
+.walk{flex:none;font-family:'Newsreader',serif;font-size:12.5px;color:#8C6A3F;white-space:nowrap}
+.pin{width:24px;height:24px;border-radius:50% 50% 50% 2px;background:var(--c,#1C4B3C);color:#F7F5EF;font:700 10.5px 'Instrument Sans',sans-serif;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(247,245,239,0.9);box-shadow:0 2px 6px rgba(20,26,22,0.35);transition:transform .18s}
+.pin.on{transform:scale(1.45);z-index:999}
+.home-pin{width:34px;height:34px;border-radius:50% 50% 50% 3px;background:#12332A;color:#E8C98A;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid #E8C98A;box-shadow:0 3px 10px rgba(18,51,42,0.5)}
+.ring-label{font:600 10px 'Instrument Sans',sans-serif;letter-spacing:0.14em;color:rgba(27,26,23,0.55);white-space:nowrap;text-transform:uppercase}
+.leaflet-tooltip{background:#FCFBF8;border:1px solid rgba(27,26,23,0.18);border-radius:6px;box-shadow:0 4px 14px rgba(20,26,22,0.16);color:#1B1A17;font-family:'Instrument Sans',sans-serif;font-size:12px;padding:7px 10px}
+.leaflet-tooltip b{font-size:12.5px}
+.leaflet-tooltip .tt-note{color:#6F6A5F}
+.home-tt{font-family:'Newsreader',serif;font-size:13px;background:#12332A;color:#EFEBDF;border-color:#12332A}
+.leaflet-tooltip-bottom.home-tt::before{border-bottom-color:#12332A}
+.leaflet-control-attribution{background:rgba(252,251,248,0.8)!important;font-size:9.5px;color:#6F6A5F}
+.leaflet-control-attribution a{color:#1C4B3C}
+.leaflet-control-zoom a{color:#1B1A17}
+@media (max-width:680px){
+.panel{top:auto;left:10px;right:10px;bottom:10px;width:auto;max-height:36%;padding:12px 12px 8px}
+.panel h1{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<aside class="panel" id="panel"><h1>Around № 201</h1><p class="sub">A curated shortlist · walk times from the door</p></aside>
+<script>
+var CATS = { eat: {label:'Eat & drink', color:'#1C4B3C'}, market: {label:'Markets', color:'#8C6A3F'}, green: {label:'Green space & swim', color:'#5F7A46'}, around: {label:'Culture & transport', color:'#4A463E'} };
+var HOME = { name: 'Empress Works · № 201', lat: 51.5334, lng: -0.0577 };
+var SPOTS = [
+  {cat:'eat',name:'Café Cecilia',note:'Canal-side cooking, cult following',walk:2,lat:51.53415,lng:-0.05925},
+  {cat:'eat',name:'Forno',note:'Bakery & pizza on the market',walk:4,lat:51.5368,lng:-0.0606},
+  {cat:'eat',name:'The Dove',note:'Broadway Market’s proper pub',walk:4,lat:51.53625,lng:-0.06075},
+  {cat:'eat',name:'Brat at Climpson’s Arch',note:'Live-fire cooking under the arches',walk:7,lat:51.5383,lng:-0.0596},
+  {cat:'eat',name:'E5 Bakehouse',note:'Sourdough institution',walk:9,lat:51.5393,lng:-0.05745},
+  {cat:'eat',name:'Bistrotheque',note:'East London’s dining room',walk:6,lat:51.5326,lng:-0.0553},
+  {cat:'market',name:'Broadway Market',note:'Saturday market, everyday street',walk:4,lat:51.5372,lng:-0.0603},
+  {cat:'market',name:'Netil Market',note:'Weekend food &amp; makers’ yard',walk:6,lat:51.5379,lng:-0.0588},
+  {cat:'market',name:'Columbia Road Flower Market',note:'Sunday flowers &amp; indie shops',walk:13,lat:51.52905,lng:-0.0699},
+  {cat:'green',name:'London Fields',note:'The park at the market’s door',walk:7,lat:51.5402,lng:-0.0605},
+  {cat:'green',name:'London Fields Lido',note:'Heated 50 m outdoor pool',walk:10,lat:51.5417,lng:-0.0592},
+  {cat:'green',name:'Victoria Park',note:'86 hectares, lakes &amp; cafés',walk:7,lat:51.5365,lng:-0.0435},
+  {cat:'green',name:'Hackney City Farm',note:'Pigs, pancakes, pottery',walk:11,lat:51.53195,lng:-0.0664},
+  {cat:'around',name:'Young V&amp;A',note:'The V&amp;A’s museum of childhood',walk:9,lat:51.529,lng:-0.0554},
+  {cat:'around',name:'Cambridge Heath',note:'Overground · Liverpool St ~10 min',walk:5,lat:51.53195,lng:-0.0563},
+  {cat:'around',name:'London Fields station',note:'Overground',walk:9,lat:51.54105,lng:-0.0579},
+  {cat:'around',name:'Bethnal Green',note:'Central line',walk:12,lat:51.5272,lng:-0.0554}
+];
+var D = { CATS: CATS, SPOTS: SPOTS, HOME: HOME };
+var map=L.map('map',{scrollWheelZoom:false,zoomControl:false});
+L.control.zoom({position:'topright'}).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(map);
+[[400,'≈ 5 min walk'],[800,'≈ 10 min walk']].forEach(function(pair){
+  var r=pair[0],label=pair[1];
+  L.circle([D.HOME.lat,D.HOME.lng],{radius:r,color:'#1C4B3C',weight:1,opacity:0.45,dashArray:'3 6',fill:false}).addTo(map);
+  L.marker([D.HOME.lat-r/111320,D.HOME.lng],{icon:L.divIcon({className:'',html:'<div class="ring-label">'+label+'</div>',iconSize:[90,14],iconAnchor:[45,7]}),interactive:false}).addTo(map);
+});
+L.marker([D.HOME.lat,D.HOME.lng],{icon:L.divIcon({className:'',html:'<div class="home-pin">✦</div>',iconSize:[34,34],iconAnchor:[17,31]}),zIndexOffset:1000}).addTo(map).bindTooltip(D.HOME.name,{permanent:true,direction:'bottom',offset:[0,6],className:'home-tt'});
+var panel=document.getElementById('panel');
+var n=0;var bounds=[[D.HOME.lat,D.HOME.lng]];
+Object.keys(D.CATS).forEach(function(key){
+  var cat=D.CATS[key];
+  var grp=document.createElement('div');grp.className='grp';
+  grp.innerHTML='<h2><i style="background:'+cat.color+'"></i>'+cat.label+'</h2>';
+  var ul=document.createElement('ul');
+  D.SPOTS.filter(function(s){return s.cat===key;}).forEach(function(s){
+    n++;var num=n;
+    var marker=L.marker([s.lat,s.lng],{icon:L.divIcon({className:'',html:'<div class="pin" style="--c:'+cat.color+'" id="pin-'+num+'">'+num+'</div>',iconSize:[24,24],iconAnchor:[12,22]})}).addTo(map).bindTooltip('<b>'+s.name+'</b><br><span class="tt-note">'+s.note+' · '+s.walk+' min walk</span>',{direction:'top',offset:[0,-20]});
+    bounds.push([s.lat,s.lng]);
+    var li=document.createElement('li');
+    li.innerHTML='<span class="num" style="background:'+cat.color+'">'+num+'</span><span class="nm"><b>'+s.name+'</b><span>'+s.note+'</span></span><span class="walk">'+s.walk+'&prime;</span>';
+    li.addEventListener('mouseenter',function(){var el=document.getElementById('pin-'+num);if(el)el.classList.add('on');marker.openTooltip();});
+    li.addEventListener('mouseleave',function(){var el=document.getElementById('pin-'+num);if(el)el.classList.remove('on');marker.closeTooltip();});
+    li.addEventListener('click',function(){map.flyTo([s.lat,s.lng],Math.max(map.getZoom(),15),{duration:0.8});marker.openTooltip();});
+    ul.appendChild(li);
+  });
+  grp.appendChild(ul);panel.appendChild(grp);
+});
+map.fitBounds(bounds,{paddingTopLeft:[window.innerWidth>680?310:40,40],paddingBottomRight:[40,window.innerWidth>680?40:window.innerHeight*0.38]});
+</script>
+</body>
+</html>
